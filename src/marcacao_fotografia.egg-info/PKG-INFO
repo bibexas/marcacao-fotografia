@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: marcacao-fotografia
+Version: 0.1.0
+Requires-Python: >=3.12
+Requires-Dist: flask<4.0.0,>=3.0.0
+Requires-Dist: psycopg2-binary<3.0.0,>=2.9.9
+Requires-Dist: python-dotenv<2.0.0,>=1.0.0
+Provides-Extra: dev
+Requires-Dist: pytest<9.0.0,>=8.0.0; extra == "dev"

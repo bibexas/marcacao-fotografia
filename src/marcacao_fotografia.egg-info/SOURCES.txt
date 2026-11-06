@@ -1,0 +1,13 @@
+README.md
+pyproject.toml
+src/marcacao_fotografia/__init__.py
+src/marcacao_fotografia/config.py
+src/marcacao_fotografia/database.py
+src/marcacao_fotografia/main.py
+src/marcacao_fotografia.egg-info/PKG-INFO
+src/marcacao_fotografia.egg-info/SOURCES.txt
+src/marcacao_fotografia.egg-info/dependency_links.txt
+src/marcacao_fotografia.egg-info/requires.txt
+src/marcacao_fotografia.egg-info/top_level.txt
+src/marcacao_fotografia/web/__init__.py
+src/marcacao_fotografia/web/inicio.py
