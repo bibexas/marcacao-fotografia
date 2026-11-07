@@ -14,3 +14,5 @@ Para a minha equipa este sistema traz a vantagem de centralizar a gestão dos pe
 - **Framework Web:** Flask
 - **Base de Dados:** PostgreSQL
 - **Controlo de Versões:** Git & GitHub
+
+
