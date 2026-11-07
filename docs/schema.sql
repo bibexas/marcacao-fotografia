@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS cliente (
     id_cliente SERIAL PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
     telefone VARCHAR(15) NOT NULL
 );
 
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS pedido (
     hora_fim TIME NOT NULL,
     localizacao VARCHAR(200) NOT NULL,
     duracao  INT NOT NULL,
-    estado VARCHAR(20) NOT NULL DEFAULT 'pendente',
+    estado VARCHAR(20) NOT NULL DEFAULT 'Pendente',
     observacoes TEXT,
     id_cliente INT NOT NULL REFERENCES cliente(id_cliente) ON DELETE CASCADE,
     id_tipo INT NOT NULL REFERENCES tipo_evento(id_tipo),
