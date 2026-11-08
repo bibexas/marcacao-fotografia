@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-class DadosClienteInvaliados(ValueError):
+class DadosClienteInvalidos(ValueError):
     pass
 
 @dataclass(frozen=True)
@@ -16,11 +16,11 @@ class Cliente:
         telefone_limpo = self.telefone.strip()
 
         if not nome_limpo:
-            raise DadosClienteInvaliados("O nome não pode estar vazio.")
+            raise DadosClienteInvalidos("O nome não pode estar vazio.")
         if not email_limpo or "@" not in email_limpo:
-            raise DadosClienteInvaliados("O email fornecido é inválido.")
+            raise DadosClienteInvalidos("O email fornecido é inválido.")
         if not telefone_limpo or not telefone_limpo.isdigit():
-            raise DadosClienteInvaliados("O telefone fornecido é inválido.")
+            raise DadosClienteInvalidos("O telefone fornecido é inválido.")
 
         object.__setattr__(self, "nome", nome_limpo)
         object.__setattr__(self, "email", email_limpo)

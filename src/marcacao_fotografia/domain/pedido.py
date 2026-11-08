@@ -16,11 +16,11 @@ class Pedido:
     hora_inicio: time
     hora_fim: time
     localizacao: str
-    duracao: int = 0
     estado: EstadoPedido
     observacoes: str | None
     id_cliente: int
     id_tipo: int
+    duracao: int = 0
 
     def __post_init__(self):
 
