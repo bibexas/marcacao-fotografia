@@ -17,7 +17,7 @@ class Cliente:
 
         if not nome_limpo:
             raise DadosClienteInvalidos("O nome não pode estar vazio.")
-        if not email_limpo or "@" not in email_limpo:
+        if not email_limpo or "@" not in email_limpo or "." not in email_limpo.split("@")[-1]:
             raise DadosClienteInvalidos("O email fornecido é inválido.")
         if not telefone_limpo or not telefone_limpo.isdigit():
             raise DadosClienteInvalidos("O telefone fornecido é inválido.")
