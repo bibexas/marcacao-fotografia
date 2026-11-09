@@ -5,7 +5,7 @@ class TipoEventoRepository:
         self.conexao = conexao
 
     def listar_tipos_evento(self) -> list[TipoEvento]:
-        query = "SELECT * FROM tipo_evento ORDER BY designacao ASC"
+        query = "SELECT * FROM tipo_evento ORDER BY tipo ASC"
         with self.conexao.cursor() as cursor:
             cursor.execute(query)
             linhas = cursor.fetchall()
@@ -13,7 +13,7 @@ class TipoEventoRepository:
         return [
             TipoEvento(
                 id_tipo=linha["id_tipo"],
-                designacao=linha["designacao"]
+                tipo=linha["tipo"]
             )
             for linha in linhas
         ]
@@ -28,5 +28,5 @@ class TipoEventoRepository:
 
         return TipoEvento(
             id_tipo=linha["id_tipo"],
-            designacao=linha["designacao"]
+            tipo=linha["tipo"]
         )
