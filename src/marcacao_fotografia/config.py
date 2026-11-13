@@ -17,11 +17,11 @@ def _load_dotenv():
 			line = line.strip()
 			if not line or line.startswith("#") or "=" not in line:
 				continue
-		name, value = line.removeprefix("export ").split("=", 1)
-		name = name.strip()
-		value = value.strip().strip("\"'")
-		if name:
-			os.environ.setdefault(name, value)
+			name, value = line.removeprefix("export ").split("=", 1)
+			name = name.strip()
+			value = value.strip().strip("\"'")
+			if name:
+				os.environ.setdefault(name, value)
 
 
 _load_dotenv()

@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import date, time
 import uuid
 from urllib.parse import quote
@@ -42,7 +43,7 @@ class PedidoService:
     def _gerar_codigo_unico(self) -> str:
         while True:
             codigo = uuid.uuid4().hex[:8].upper()
-            if not self.pedido_repo.procurar_por_codigo(codigo):
+            if not self.pedido_repo.procurar_codigo(codigo):
                 return codigo
 
     def criar_pedido(
@@ -58,7 +59,7 @@ class PedidoService:
         if not self.cliente_repo.procurar_id(id_cliente):
             raise ValueError(f"Cliente com ID {id_cliente} não existe.")
 
-        if not self.tipo_evento_repo.procurar_id(id_tipo):
+        if not self.tipo_evento_repo.procurar_por_id(id_tipo):
             raise ValueError(f"Tipo de evento com ID {id_tipo} não existe.")
 
         if self.pedido_repo.existe_sobreposicao(data_sessao, hora_inicio, hora_fim):
@@ -79,10 +80,10 @@ class PedidoService:
             id_tipo=id_tipo,
         )
 
-        return self.pedido_repo.guardar(novo_pedido)
+        return self.pedido_repo.guardar_pedido(novo_pedido)
 
     def consultar_por_codigo(self, codigo_consulta: str) -> Pedido:
-        pedido = self.pedido_repo.procurar_por_codigo(codigo_consulta.strip().upper())
+        pedido = self.pedido_repo.procurar_codigo(codigo_consulta.strip().upper())
         if not pedido:
             raise PedidoNaoEncontradoError(f"Pedido com código '{codigo_consulta}' não encontrado.")
         return pedido
@@ -103,8 +104,8 @@ class PedidoService:
                 "Por favor, contacte a equipa diretamente."
             )
 
-        pedido.estado = EstadoPedido.CANCELADA
-        return self.pedido_repo.atualizar(pedido)
+        pedido_cancelado = replace(pedido, estado=EstadoPedido.CANCELADA)
+        return self.pedido_repo.atualizar(pedido_cancelado)
 
     def alterar_estado_equipa(self, id_pedido: int, novo_estado: EstadoPedido) -> Pedido:
         pedido = self.pedido_repo.procurar_id(id_pedido)
@@ -116,8 +117,8 @@ class PedidoService:
                 raise TransicaoEstadoInvalidaError(
                     f"Não é possível cancelar um pedido no estado '{pedido.estado.value}'."
                 )
-            pedido.estado = EstadoPedido.CANCELADA
-            return self.pedido_repo.atualizar(pedido)
+            pedido_cancelado = replace(pedido, estado=EstadoPedido.CANCELADA)
+            return self.pedido_repo.atualizar(pedido_cancelado)
 
         if pedido.estado not in self.ORDEM_ESTADOS or novo_estado not in self.ORDEM_ESTADOS:
             raise TransicaoEstadoInvalidaError(
@@ -140,8 +141,8 @@ class PedidoService:
                     "Não é possível confirmar: já existe outro pedido confirmado neste horário."
                 )
 
-        pedido.estado = novo_estado
-        return self.pedido_repo.atualizar(pedido)
+        pedido_atualizado = replace(pedido, estado=novo_estado)
+        return self.pedido_repo.atualizar(pedido_atualizado)
 
     def gerar_link_whatsapp(self, telefone_destino: str, pedido: Pedido) -> str:
         telefone_limpo = "".join(filter(str.isdigit, telefone_destino))

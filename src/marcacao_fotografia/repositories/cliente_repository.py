@@ -15,6 +15,7 @@ class ClienteRepository:
             cursor.execute(query, (cliente.nome, cliente.email, cliente.telefone))
             resultado = cursor.fetchone()
             novo_id = resultado["id_cliente"]
+        self.conexao.commit()
 
         return Cliente(id_cliente=novo_id, nome=cliente.nome, email=cliente.email, telefone=cliente.telefone)
 

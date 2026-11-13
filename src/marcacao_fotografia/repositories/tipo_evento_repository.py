@@ -30,3 +30,27 @@ class TipoEventoRepository:
             id_tipo=linha["id_tipo"],
             tipo=linha["tipo"]
         )
+
+    def procurar_por_nome(self, tipo: str) -> TipoEvento | None:
+        query = "SELECT * FROM tipo_evento WHERE tipo = %s"
+        with self.conexao.cursor() as cursor:
+            cursor.execute(query, (tipo.strip(),))
+            linha = cursor.fetchone()
+        if linha is None:
+            return None
+
+        return TipoEvento(id_tipo=linha["id_tipo"], tipo=linha["tipo"])
+
+    def guardar(self, tipo_evento: TipoEvento) -> TipoEvento:
+        query = """
+        INSERT INTO tipo_evento (tipo)
+        VALUES (%s)
+        RETURNING id_tipo
+        """
+        with self.conexao.cursor() as cursor:
+            cursor.execute(query, (tipo_evento.tipo,))
+            resultado = cursor.fetchone()
+            novo_id = resultado["id_tipo"]
+        self.conexao.commit()
+
+        return TipoEvento(id_tipo=novo_id, tipo=tipo_evento.tipo)

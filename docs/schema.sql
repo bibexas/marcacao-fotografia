@@ -7,8 +7,23 @@ CREATE TABLE IF NOT EXISTS cliente (
 
 CREATE TABLE IF NOT EXISTS tipo_evento (
     id_tipo SERIAL PRIMARY KEY,
-    designacao VARCHAR(100) NOT NULL UNIQUE
+    tipo VARCHAR(100) NOT NULL UNIQUE
 );
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name = 'tipo_evento' AND column_name = 'designacao'
+    ) AND NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_name = 'tipo_evento' AND column_name = 'tipo'
+    ) THEN
+        ALTER TABLE tipo_evento RENAME COLUMN designacao TO tipo;
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS administrador (
     id_admin SERIAL PRIMARY KEY,
