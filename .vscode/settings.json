@@ -10,5 +10,6 @@
     "python.testing.unittestEnabled": true,
     "python.testing.testArgs": [
         "src"
-    ]
+    ],
+    "python.terminal.useEnvFile": true
 }

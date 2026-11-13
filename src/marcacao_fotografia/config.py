@@ -28,9 +28,26 @@ _load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-if not DATABASE_URL:
-	warnings.warn(
-		"A variável de ambiente DATABASE_URL não está definida.",
-		RuntimeWarning,
-		stacklevel=2,
-	)
+def _get_bool(name, default=False):
+	value = os.getenv(name)
+	if value is None:
+		return default
+	return value.strip().lower() in ("1", "true", "yes", "on")
+
+
+def _warn_if_missing(name, value):
+	if not value:
+		warnings.warn(
+			f"A variável de ambiente {name} não está definida.",
+			RuntimeWarning,
+			stacklevel=3,
+		)
+
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
+FLASK_DEBUG = _get_bool("FLASK_DEBUG")
+WHATSAPP_PHONE = "".join(c for c in os.getenv("WHATSAPP_PHONE", "") if c.isdigit())
+
+_warn_if_missing("DATABASE_URL", DATABASE_URL)
+_warn_if_missing("FLASK_SECRET_KEY", FLASK_SECRET_KEY)

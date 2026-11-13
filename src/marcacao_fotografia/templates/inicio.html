@@ -5,8 +5,46 @@
   <title>Beatriz Vilaça - Fotografia</title>
 </head>
 <body>
-  <h1>Beatriz Vilaça - Fotografia</h1>
-  <h2>Marcação de Sessão</h2>
-  <p>Bem-vindo à página de marcação de sessão fotográfica! Aqui pode agendar a sua sessão de fotos.</p>
+  <h1>Marcação de sessão fotográfica</h1>
+
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% for categoria, mensagem in mensagens %}
+      <p class="{{ categoria }}">{{ mensagem }}</p>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="post" action="{{ url_for('submeter_pedido') }}">
+    <label>Nome <input name="nome" required></label>
+    <label>Email <input name="email" type="email" required></label>
+    <label>Telefone <input name="telefone" required></label>
+    <label>Tipo de evento
+      <select name="id_tipo" required>
+        {% for tipo in tipos_evento %}
+          <option value="{{ tipo.id_tipo }}">{{ tipo.tipo }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Data <input name="data_sessao" type="date" required></label>
+    <label>Início <input name="hora_inicio" type="time" required></label>
+    <label>Fim <input name="hora_fim" type="time" required></label>
+    <label>Localização <input name="localizacao" required></label>
+    <label>Observações <textarea name="observacoes"></textarea></label>
+    <button type="submit">Submeter pedido</button>
+  </form>
+
+  <form method="post" action="{{ url_for('consultar_pedido') }}">
+    <label>Código de consulta <input name="codigo_consulta" required></label>
+    <button type="submit">Consultar</button>
+  </form>
+
+  {% if pedido_consultado %}
+    <h2>Pedido {{ pedido_consultado.codigo_consulta }}</h2>
+    <p>Estado: {{ pedido_consultado.estado.value }}</p>
+    {% if pedido_consultado.estado.value == "Pendente" %}
+      <form method="post" action="{{ url_for('cancelar_pedido', codigo=pedido_consultado.codigo_consulta) }}">
+        <button type="submit">Cancelar pedido</button>
+      </form>
+    {% endif %}
+  {% endif %}
 </body>
 </html>

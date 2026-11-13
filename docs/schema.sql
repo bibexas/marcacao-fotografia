@@ -10,21 +10,6 @@ CREATE TABLE IF NOT EXISTS tipo_evento (
     tipo VARCHAR(100) NOT NULL UNIQUE
 );
 
-DO $$
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_name = 'tipo_evento' AND column_name = 'designacao'
-    ) AND NOT EXISTS (
-        SELECT 1
-        FROM information_schema.columns
-        WHERE table_name = 'tipo_evento' AND column_name = 'tipo'
-    ) THEN
-        ALTER TABLE tipo_evento RENAME COLUMN designacao TO tipo;
-    END IF;
-END $$;
-
 CREATE TABLE IF NOT EXISTS administrador (
     id_admin SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -41,7 +26,15 @@ CREATE TABLE IF NOT EXISTS pedido (
     duracao  INT NOT NULL,
     estado VARCHAR(20) NOT NULL DEFAULT 'Pendente',
     observacoes TEXT,
-    id_cliente INT NOT NULL REFERENCES cliente(id_cliente) ON DELETE CASCADE,
+    id_cliente INT NOT NULL REFERENCES cliente(id_cliente) ON DELETE RESTRICT,
     id_tipo INT NOT NULL REFERENCES tipo_evento(id_tipo),
-    CONSTRAINT chk_hora CHECK (hora_inicio < hora_fim)
+    CONSTRAINT chk_hora CHECK (hora_inicio < hora_fim),
+    CONSTRAINT chk_pedido_estado CHECK (estado IN ('Pendente', 'Confirmada', 'Realizada', 'Em Tratamento', 'Entregue', 'Cancelada'))
 );
+
+CREATE INDEX IF NOT EXISTS idx_pedido_data_estado ON pedido (data_sessao, estado);
+CREATE INDEX IF NOT EXISTS idx_pedido_estado ON pedido (estado);
+
+INSERT INTO tipo_evento (tipo) VALUES
+    ('Casamento'), ('Aniversário'), ('Corporativo'), ('Festival')
+ON CONFLICT (tipo) DO NOTHING;

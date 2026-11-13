@@ -1,13 +1,3 @@
-from flask import Flask
+from .app import app, criar_app
 
-def criar_app():
-    app = Flask(__name__)
-
-    from .database import iniciar_bd
-
-    iniciar_bd()
-
-    from .web import inicio
-    app.register_blueprint(inicio.bp)
-
-    return app
+__all__ = ["app", "criar_app"]
