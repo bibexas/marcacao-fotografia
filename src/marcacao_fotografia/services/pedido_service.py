@@ -40,12 +40,14 @@ class PedidoService:
         self.cliente_repo = cliente_repo
         self.tipo_evento_repo = tipo_evento_repo
 
+    # Gerar um código único para o pedido
     def _gerar_codigo_unico(self) -> str:
         while True:
             codigo = uuid.uuid4().hex[:8].upper()
             if not self.pedido_repo.procurar_codigo(codigo):
                 return codigo
 
+    # Criar um novo pedido
     def criar_pedido(
         self,
         id_cliente: int,
@@ -82,19 +84,23 @@ class PedidoService:
 
         return self.pedido_repo.guardar_pedido(novo_pedido)
 
+    # Consultar um pedido pelo código
     def consultar_por_codigo(self, codigo_consulta: str) -> Pedido:
         pedido = self.pedido_repo.procurar_codigo(codigo_consulta.strip().upper())
         if not pedido:
             raise PedidoNaoEncontradoError(f"Pedido com código '{codigo_consulta}' não encontrado.")
         return pedido
 
+    # Listar todos os pedidos
     def listar_pedidos(self) -> list[Pedido]:
         return self.pedido_repo.listar_todos()
 
+    # Listar os horários indisponíveis para uma determinada data
     def listar_horarios_indisponiveis(self, data_sessao: date) -> list[tuple[time, time]]:
         pedidos_confirmados = self.pedido_repo.listar_confirmados_por_data(data_sessao)
         return [(p.hora_inicio, p.hora_fim) for p in pedidos_confirmados]
 
+    # Cancelar um pedido enquanto cliente (apenas se estiver pendente)
     def cancelar_pelo_cliente(self, codigo_consulta: str) -> Pedido:
         pedido = self.consultar_por_codigo(codigo_consulta)
 
@@ -107,6 +113,7 @@ class PedidoService:
         pedido_cancelado = replace(pedido, estado=EstadoPedido.CANCELADA)
         return self.pedido_repo.atualizar(pedido_cancelado)
 
+    # Alterar o estado de um pedido (para uso interno da equipa)
     def alterar_estado_equipa(self, id_pedido: int, novo_estado: EstadoPedido) -> Pedido:
         pedido = self.pedido_repo.procurar_id(id_pedido)
         if not pedido:
@@ -144,6 +151,7 @@ class PedidoService:
         pedido_atualizado = replace(pedido, estado=novo_estado)
         return self.pedido_repo.atualizar(pedido_atualizado)
 
+    # Gerar um link para o WhatsApp com uma mensagem pré-preenchida
     def gerar_link_whatsapp(self, telefone_destino: str, pedido: Pedido) -> str:
         telefone_limpo = "".join(filter(str.isdigit, telefone_destino))
         if not telefone_limpo.startswith("351") and len(telefone_limpo) == 9:

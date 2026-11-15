@@ -5,6 +5,7 @@ class ClienteRepository:
         
         self.conexao = conexao
 
+    # Guardar um cliente no banco de dados
     def guardar_cliente(self, cliente: Cliente) -> Cliente:
         query = """
         INSERT INTO cliente (nome, email, telefone)
@@ -19,6 +20,7 @@ class ClienteRepository:
 
         return Cliente(id_cliente=novo_id, nome=cliente.nome, email=cliente.email, telefone=cliente.telefone)
 
+    # Procurar um cliente pelo email
     def procurar_email(self, email: str) -> Cliente | None:
         query = "SELECT * FROM cliente WHERE email = %s"
         with self.conexao.cursor() as cursor:
@@ -33,6 +35,8 @@ class ClienteRepository:
             email=linha["email"],
             telefone=linha["telefone"],
         )
+    
+    # Procurar um cliente pelo ID
     def procurar_id(self, id_cliente: int) -> Cliente | None:
         query = "SELECT * FROM cliente WHERE id_cliente = %s"
         with self.conexao.cursor() as cursor:

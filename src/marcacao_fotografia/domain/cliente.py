@@ -15,6 +15,7 @@ class Cliente:
         email_limpo = self.email.strip()
         telefone_limpo = self.telefone.strip()
 
+        # Validar os dados do cliente
         if not nome_limpo:
             raise DadosClienteInvalidos("O nome não pode estar vazio.")
         if not email_limpo or "@" not in email_limpo or "." not in email_limpo.split("@")[-1]:
@@ -22,6 +23,7 @@ class Cliente:
         if not telefone_limpo or not telefone_limpo.isdigit():
             raise DadosClienteInvalidos("O telefone fornecido é inválido.")
 
+        # Atribuir os valores limpos aos atributos do objeto
         object.__setattr__(self, "nome", nome_limpo)
         object.__setattr__(self, "email", email_limpo)
         object.__setattr__(self, "telefone", telefone_limpo)

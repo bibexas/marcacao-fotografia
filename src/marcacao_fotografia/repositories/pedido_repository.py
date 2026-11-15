@@ -6,6 +6,7 @@ class PedidoRepository:
     def __init__(self, conexao):
         self.conexao = conexao
 
+    # Converter uma linha da base de dados num objeto Pedido
     def linha_para_pedido(self, linha: dict) -> Pedido:
         return Pedido(
             id_pedido=linha["id_pedido"],
@@ -21,6 +22,7 @@ class PedidoRepository:
             id_tipo=linha["id_tipo"],
         )
 
+    # Guardar um pedido na base de dados
     def guardar_pedido(self, pedido: Pedido) -> Pedido:
         query = """
         INSERT INTO pedido (codigo_consulta, data_sessao, hora_inicio, hora_fim, localizacao, duracao, estado, observacoes, id_cliente, id_tipo)
@@ -61,6 +63,7 @@ class PedidoRepository:
             id_tipo=pedido.id_tipo,
         )
 
+    # Procurar um pedido pelo código de consulta
     def procurar_codigo(self, codigo_consulta: str) -> Pedido | None:
         query = "SELECT * FROM pedido WHERE codigo_consulta = %s"
         with self.conexao.cursor() as cursor:
@@ -71,6 +74,7 @@ class PedidoRepository:
 
         return self.linha_para_pedido(linha)
 
+    # Procurar um pedido pelo ID
     def procurar_id(self, id_pedido: int) -> Pedido | None:
         query = "SELECT * FROM pedido WHERE id_pedido = %s"
         with self.conexao.cursor() as cursor:
@@ -81,6 +85,7 @@ class PedidoRepository:
 
         return self.linha_para_pedido(linha)
 
+    # Listar todos os pedidos
     def listar_todos(self) -> list[Pedido]:
         query = "SELECT * FROM pedido"
         with self.conexao.cursor() as cursor:
@@ -89,6 +94,7 @@ class PedidoRepository:
 
         return [self.linha_para_pedido(linha) for linha in linhas]
 
+    # Consultar sobreposições de pedidos
     def consultar_sobreposicoes(self, data_sessao, hora_inicio, hora_fim) -> list[Pedido]:
         query = """
         SELECT * FROM pedido
@@ -111,6 +117,7 @@ class PedidoRepository:
 
         return [self.linha_para_pedido(linha) for linha in linhas]
 
+    # Verificar se existe sobreposição de pedidos
     def existe_sobreposicao(
         self,
         data_sessao,
@@ -140,6 +147,7 @@ class PedidoRepository:
             cursor.execute(query, tuple(parametros))
             return cursor.fetchone() is not None
 
+    # Listar todos os pedidos confirmados por data
     def listar_confirmados_por_data(self, data_sessao) -> list[Pedido]:
         query = """
         SELECT * FROM pedido
@@ -152,6 +160,7 @@ class PedidoRepository:
 
         return [self.linha_para_pedido(linha) for linha in linhas]
 
+    # Atualizar um pedido na base de dados
     def atualizar(self, pedido: Pedido) -> Pedido:
         query = """
         UPDATE pedido
@@ -181,6 +190,7 @@ class PedidoRepository:
         self.conexao.commit()
         return pedido
 
+    # Atualizar o estado de um pedido na base de dados
     def atualizar_estado(self, id_pedido: int, novo_estado: EstadoPedido) -> None:
         query = "UPDATE pedido SET estado = %s WHERE id_pedido = %s"
         with self.conexao.cursor() as cursor:

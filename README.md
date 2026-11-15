@@ -1,4 +1,5 @@
-# Beatriz Vilaça - Fotografia | Sistema de Marcação de Sessões
+# Beatriz Vilaça - Fotografia 
+## Sistema de Marcação de Sessões Fotográficas
 
 Sistema de gestão e acompanhamento de pedidos de marcação de sessões fotográficas desenvolvido no âmbito do projeto final da UFCD 5425. 
 
@@ -8,6 +9,25 @@ Este sistema surge como uma necessidade para um problema existente no meu quotid
 Atualmente, a gestão de marcações de sessões fotográficas é realizada de forma informal através das mensagens diretas do Instagram. 
 Com a criação desta plataforma web, o processo não só se tornará mais profissional como permitirá aos clientes submeterem pedidos de agendamento e acompanharem o estado dos mesmos através de um código único de consulta. 
 Para a minha equipa este sistema traz a vantagem de centralizar a gestão dos pedidos e bloqueios de agenda, facilitando a organização.
+
+## Estrutura do projeto
+
+```text
+.
+├── docs/
+│   └── schema.sql                 # Estrutura e dados iniciais da base de dados
+├── src/marcacao_fotografia/
+│   ├── app.py                     # Rotas e configuração da aplicação Flask
+│   ├── config.py                  # Variáveis de ambiente
+│   ├── database.py                # Ligação e inicialização da base de dados
+│   ├── domain/                    # Entidades e regras do domínio
+│   ├── repositories/              # Persistência dos dados
+│   ├── services/                  # Regras de negócio
+│   ├── templates/                 # Páginas HTML
+│   └── tests/                     # Testes automatizados
+├── pyproject.toml                 # Metadados e dependências do projeto
+└── requirements.txt                # Dependências fixas
+```
 
 ## Funcionalidades Previstas
 - Pedido de marcação de sessão fotográfica
@@ -26,9 +46,9 @@ Para a minha equipa este sistema traz a vantagem de centralizar a gestão dos pe
 ## Estado Atual
 **Feito:**
 - Base de Dados
+- Estrutura do sistema
 
 **Em desenvolvimento:**
-- Estrutura do sistema
 - Páginas Web
 
 **Por implementar:**

@@ -4,6 +4,7 @@ class TipoEventoRepository:
     def __init__(self, conexao):
         self.conexao = conexao
 
+    # Listar todos os tipos de evento
     def listar_tipos_evento(self) -> list[TipoEvento]:
         query = "SELECT * FROM tipo_evento ORDER BY tipo ASC"
         with self.conexao.cursor() as cursor:
@@ -18,6 +19,7 @@ class TipoEventoRepository:
             for linha in linhas
         ]
 
+    # Procurar um tipo de evento pelo ID
     def procurar_por_id(self, id_tipo: int) -> TipoEvento | None:
         query = "SELECT * FROM tipo_evento WHERE id_tipo = %s"
         with self.conexao.cursor() as cursor:
@@ -31,6 +33,7 @@ class TipoEventoRepository:
             tipo=linha["tipo"]
         )
 
+    # Procurar um tipo de evento pelo nome
     def procurar_por_nome(self, tipo: str) -> TipoEvento | None:
         query = "SELECT * FROM tipo_evento WHERE tipo = %s"
         with self.conexao.cursor() as cursor:
@@ -41,6 +44,7 @@ class TipoEventoRepository:
 
         return TipoEvento(id_tipo=linha["id_tipo"], tipo=linha["tipo"])
 
+    # Guardar um tipo de evento na base de dados
     def guardar(self, tipo_evento: TipoEvento) -> TipoEvento:
         query = """
         INSERT INTO tipo_evento (tipo)

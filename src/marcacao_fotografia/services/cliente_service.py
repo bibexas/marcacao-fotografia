@@ -11,6 +11,7 @@ class ClienteService:
     def __init__(self, cliente_repo: ClienteRepository):
         self.cliente_repo = cliente_repo
 
+    # Criar um novo cliente
     def criar_cliente(self, nome: str, email: str, telefone: str) -> Cliente:
         email_limpo = email.strip()
         cliente_existente = self.cliente_repo.procurar_email(email_limpo)
@@ -25,12 +26,14 @@ class ClienteService:
         )
         return self.cliente_repo.guardar_cliente(novo_cliente)
 
+    # Obter um cliente pelo ID
     def obter_cliente_por_id(self, id_cliente: int) -> Cliente:
         cliente = self.cliente_repo.procurar_id(id_cliente)
         if not cliente:
             raise ClienteNaoEncontradoError(f"Cliente com o ID {id_cliente} não foi encontrado.")
         return cliente
 
+    # Obter um cliente pelo email
     def obter_cliente_por_email(self, email: str) -> Cliente:
         cliente = self.cliente_repo.procurar_email(email.strip())
         if not cliente:

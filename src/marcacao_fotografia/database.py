@@ -32,7 +32,21 @@ def iniciar_bd():
             cursor.execute(sql_schema)
         conexao.commit()
     except Exception:
-        conexao.rollback()
+        conexao.rollback() 
         raise
+    finally:
+        conexao.close()
+
+def testar_conexao():
+    try:
+        conexao = obter_conexao()
+    except Exception:
+        return False
+    try:
+        with conexao.cursor() as cursor:
+            cursor.execute("SELECT 1;")
+            return True
+    except Exception:
+        return False
     finally:
         conexao.close()

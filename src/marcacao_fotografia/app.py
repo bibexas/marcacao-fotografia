@@ -19,7 +19,7 @@ from marcacao_fotografia.services.tipo_evento_service import TipoEventoService
 
 TELEFONE_EQUIPA = "+351 912 345 678"
 
-
+# Obter os serviços (ClienteService, TipoEventoService, PedidoService) e o repositório de pedidos
 def _obter_servicos():
     if "servicos" not in g:
         if not current_app.extensions.get("database_initialized"):
@@ -39,13 +39,13 @@ def _obter_servicos():
         )
     return g.servicos
 
-
+# Fechar a conexão à base de dados ao terminar o contexto da aplicação
 def _fechar_conexao(_exception=None):
     conexao = g.pop("conexao", None)
     if conexao is not None:
         conexao.close()
 
-
+# Criar a aplicação Flask
 def criar_app() -> Flask:
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
