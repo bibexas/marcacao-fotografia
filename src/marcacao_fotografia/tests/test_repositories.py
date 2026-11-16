@@ -119,16 +119,19 @@ class TestRepositories(unittest.TestCase):
         self.assertIsInstance(sobreposicoes, list)
 
     def test_atualizar_estado(self):
+        self.cursor_mock.rowcount = 1
         self.pedido_repo.atualizar_estado(1, EstadoPedido.CONFIRMADA)
         self.cursor_mock.execute.assert_called_once()
 
     def test_listar_tipos_evento(self):
         self.cursor_mock.fetchall.return_value = [
             {"id_tipo": 1, "tipo": "Casamento"},
-            {"id_tipo": 2, "tipo": "Batizado"}
+            {"id_tipo": 2, "tipo": "Batizado"},
+            {"id_tipo": 3, "tipo": "Aniversário"},
+            {"id_tipo": 4, "tipo": "Aniversário\u00a0"},
         ]
         tipos = self.tipo_evento_repo.listar_tipos_evento()
-        self.assertEqual(len(tipos), 2)
+        self.assertEqual(len(tipos), 3)
         self.assertEqual(tipos[0].tipo, "Casamento")
 
     def test_procurar_por_id(self):

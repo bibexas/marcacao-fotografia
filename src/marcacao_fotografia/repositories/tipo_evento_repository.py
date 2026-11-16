@@ -1,3 +1,5 @@
+import unicodedata
+
 from marcacao_fotografia.domain.tipo_evento import TipoEvento
 
 class TipoEventoRepository:
@@ -6,18 +8,24 @@ class TipoEventoRepository:
 
     # Listar todos os tipos de evento
     def listar_tipos_evento(self) -> list[TipoEvento]:
-        query = "SELECT * FROM tipo_evento ORDER BY tipo ASC"
+        query = """
+        SELECT id_tipo, tipo
+        FROM tipo_evento
+        ORDER BY tipo ASC, id_tipo ASC
+        """
         with self.conexao.cursor() as cursor:
             cursor.execute(query)
             linhas = cursor.fetchall()
 
-        return [
-            TipoEvento(
-                id_tipo=linha["id_tipo"],
-                tipo=linha["tipo"]
-            )
-            for linha in linhas
-        ]
+        tipos_vistos = set()
+        tipos = []
+        for linha in linhas:
+            nome_normalizado = unicodedata.normalize("NFKC", linha["tipo"]).strip().casefold()
+            if nome_normalizado in tipos_vistos:
+                continue
+            tipos_vistos.add(nome_normalizado)
+            tipos.append(TipoEvento(id_tipo=linha["id_tipo"], tipo=linha["tipo"]))
+        return tipos
 
     # Procurar um tipo de evento pelo ID
     def procurar_por_id(self, id_tipo: int) -> TipoEvento | None:
@@ -35,7 +43,13 @@ class TipoEventoRepository:
 
     # Procurar um tipo de evento pelo nome
     def procurar_por_nome(self, tipo: str) -> TipoEvento | None:
-        query = "SELECT * FROM tipo_evento WHERE tipo = %s"
+        query = """
+        SELECT id_tipo, tipo
+        FROM tipo_evento
+        WHERE LOWER(BTRIM(tipo)) = LOWER(BTRIM(%s))
+        ORDER BY id_tipo ASC
+        LIMIT 1
+        """
         with self.conexao.cursor() as cursor:
             cursor.execute(query, (tipo.strip(),))
             linha = cursor.fetchone()
@@ -51,10 +65,14 @@ class TipoEventoRepository:
         VALUES (%s)
         RETURNING id_tipo
         """
-        with self.conexao.cursor() as cursor:
-            cursor.execute(query, (tipo_evento.tipo,))
-            resultado = cursor.fetchone()
-            novo_id = resultado["id_tipo"]
-        self.conexao.commit()
+        try:
+            with self.conexao.cursor() as cursor:
+                cursor.execute(query, (tipo_evento.tipo,))
+                resultado = cursor.fetchone()
+                novo_id = resultado["id_tipo"]
+            self.conexao.commit()
+        except Exception:
+            self.conexao.rollback()
+            raise
 
         return TipoEvento(id_tipo=novo_id, tipo=tipo_evento.tipo)

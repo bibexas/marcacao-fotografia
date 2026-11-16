@@ -57,5 +57,5 @@ class AdministradorRepository:
     def username_existe(self, username: str) -> bool:
         query = "SELECT EXISTS (SELECT 1 FROM administrador WHERE username = %s) AS existe"
         with self.conexao.cursor() as cursor:
-            cursor.execute(query, (username.strip(),))
+            cursor.execute(query, (username.strip().lower(),))
             return cursor.fetchone() ["existe"]

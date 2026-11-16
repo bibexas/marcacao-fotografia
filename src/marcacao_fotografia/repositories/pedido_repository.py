@@ -29,25 +29,29 @@ class PedidoRepository:
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id_pedido
         """
-        with self.conexao.cursor() as cursor:
-            cursor.execute(
-                query,
-                (
-                    pedido.codigo_consulta,
-                    pedido.data_sessao,
-                    pedido.hora_inicio,
-                    pedido.hora_fim,
-                    pedido.localizacao,
-                    pedido.duracao,
-                    pedido.estado.value,
-                    pedido.observacoes,
-                    pedido.id_cliente,
-                    pedido.id_tipo,
-                ),
-            )
-            resultado = cursor.fetchone()
-            novo_id = resultado["id_pedido"]
-        self.conexao.commit()
+        try:
+            with self.conexao.cursor() as cursor:
+                cursor.execute(
+                    query,
+                    (
+                        pedido.codigo_consulta,
+                        pedido.data_sessao,
+                        pedido.hora_inicio,
+                        pedido.hora_fim,
+                        pedido.localizacao,
+                        pedido.duracao,
+                        pedido.estado.value,
+                        pedido.observacoes,
+                        pedido.id_cliente,
+                        pedido.id_tipo,
+                    ),
+                )
+                resultado = cursor.fetchone()
+                novo_id = resultado["id_pedido"]
+            self.conexao.commit()
+        except Exception:
+            self.conexao.rollback()
+            raise
 
         return Pedido(
             id_pedido=novo_id,
@@ -169,32 +173,42 @@ class PedidoRepository:
             observacoes = %s, id_cliente = %s, id_tipo = %s
         WHERE id_pedido = %s
         """
-        with self.conexao.cursor() as cursor:
-            cursor.execute(
-                query,
-                (
-                    pedido.data_sessao,
-                    pedido.hora_inicio,
-                    pedido.hora_fim,
-                    pedido.localizacao,
-                    pedido.duracao,
-                    pedido.estado.value,
-                    pedido.observacoes,
-                    pedido.id_cliente,
-                    pedido.id_tipo,
-                    pedido.id_pedido,
-                ),
-            )
-            if cursor.rowcount != 1:
-                raise ValueError(f"Pedido com ID {pedido.id_pedido} não encontrado.")
-        self.conexao.commit()
+        try:
+            with self.conexao.cursor() as cursor:
+                cursor.execute(
+                    query,
+                    (
+                        pedido.data_sessao,
+                        pedido.hora_inicio,
+                        pedido.hora_fim,
+                        pedido.localizacao,
+                        pedido.duracao,
+                        pedido.estado.value,
+                        pedido.observacoes,
+                        pedido.id_cliente,
+                        pedido.id_tipo,
+                        pedido.id_pedido,
+                    ),
+                )
+                if cursor.rowcount != 1:
+                    raise ValueError(f"Pedido com ID {pedido.id_pedido} não encontrado.")
+            self.conexao.commit()
+        except Exception:
+            self.conexao.rollback()
+            raise
         return pedido
 
     # Atualizar o estado de um pedido na base de dados
     def atualizar_estado(self, id_pedido: int, novo_estado: EstadoPedido) -> None:
         query = "UPDATE pedido SET estado = %s WHERE id_pedido = %s"
-        with self.conexao.cursor() as cursor:
-            cursor.execute(query, (novo_estado.value, id_pedido))
-        self.conexao.commit()
+        try:
+            with self.conexao.cursor() as cursor:
+                cursor.execute(query, (novo_estado.value, id_pedido))
+                if cursor.rowcount != 1:
+                    raise ValueError(f"Pedido com ID {id_pedido} não encontrado.")
+            self.conexao.commit()
+        except Exception:
+            self.conexao.rollback()
+            raise
 
     

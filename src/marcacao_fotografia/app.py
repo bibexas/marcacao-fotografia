@@ -1,8 +1,22 @@
 import os
 import secrets
+import hmac
+import threading
+import time as time_module
 from datetime import date, time
 
-from flask import Flask, current_app, flash, g, redirect, render_template, request, url_for
+from flask import (
+    Flask,
+    abort,
+    current_app,
+    flash,
+    g,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 
 from marcacao_fotografia.database import iniciar_bd, obter_conexao
 from marcacao_fotografia.repositories.cliente_repository import ClienteRepository
@@ -19,7 +33,7 @@ from marcacao_fotografia.services.tipo_evento_service import TipoEventoService
 
 TELEFONE_EQUIPA = "+351 912 345 678"
 
-# Obter os serviços (ClienteService, TipoEventoService, PedidoService) e o repositório de pedidos
+# Obter os serviços usados pelas rotas.
 def _obter_servicos():
     if "servicos" not in g:
         if not current_app.extensions.get("database_initialized"):
@@ -35,7 +49,6 @@ def _obter_servicos():
             ClienteService(cliente_repo),
             TipoEventoService(tipo_evento_repo),
             PedidoService(pedido_repo, cliente_repo, tipo_evento_repo),
-            pedido_repo,
         )
     return g.servicos
 
@@ -50,20 +63,69 @@ def criar_app() -> Flask:
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
     app.extensions["database_initialized"] = False
+    limites: dict[tuple[str, str], list[float]] = {}
+    limites_lock = threading.Lock()
     app.teardown_appcontext(_fechar_conexao)
+
+    @app.context_processor
+    def disponibilizar_csrf_token():
+        token = session.get("_csrf_token")
+        if token is None:
+            token = secrets.token_urlsafe(32)
+            session["_csrf_token"] = token
+        return {"csrf_token": token}
+
+    def validar_csrf() -> None:
+        token_atual = session.get("_csrf_token")
+        token_recebido = request.form.get("_csrf_token", "")
+        if (
+            not token_atual
+            or not token_recebido
+            or not hmac.compare_digest(token_atual, token_recebido)
+        ):
+            abort(400, description="Token CSRF inválido ou ausente.")
+
+    def permitir_requisicao(nome_rota: str, limite: int) -> bool:
+        agora = time_module.monotonic()
+        chave = (request.remote_addr or "desconhecido", nome_rota)
+        with limites_lock:
+            for chave_antiga, instantes in list(limites.items()):
+                recentes = [
+                    instante
+                    for instante in instantes
+                    if agora - instante < 60
+                ]
+                if recentes:
+                    limites[chave_antiga] = recentes
+                else:
+                    del limites[chave_antiga]
+
+            pedidos_recentes = [
+                instante
+                for instante in limites.get(chave, [])
+                if agora - instante < 60
+            ]
+            if len(pedidos_recentes) >= limite:
+                limites[chave] = pedidos_recentes
+                return False
+            pedidos_recentes.append(agora)
+            limites[chave] = pedidos_recentes
+            return True
 
     @app.route("/", methods=["GET"])
     def inicio():
-        _, tipo_evento_service, pedido_service, pedido_repo = _obter_servicos()
+        _, tipo_evento_service, _ = _obter_servicos()
         return render_template(
             "inicio.html",
             tipos_evento=tipo_evento_service.listar_tipos_evento(),
-            pedidos=pedido_repo.listar_todos(),
         )
 
     @app.route("/submeter", methods=["POST"])
     def submeter_pedido():
-        cliente_service, tipo_evento_service, pedido_service, _ = _obter_servicos()
+        if not permitir_requisicao("submeter", 5):
+            return "Demasiadas tentativas. Tente novamente mais tarde.", 429
+        validar_csrf()
+        cliente_service, tipo_evento_service, pedido_service = _obter_servicos()
         try:
             nome = request.form["nome"]
             email = request.form["email"]
@@ -97,7 +159,6 @@ def criar_app() -> Flask:
             return render_template(
                 "inicio.html",
                 tipos_evento=tipo_evento_service.listar_tipos_evento(),
-                pedidos=pedido_service.listar_pedidos(),
                 pedido_criado=pedido,
                 link_whatsapp=link_whatsapp,
             )
@@ -107,7 +168,10 @@ def criar_app() -> Flask:
 
     @app.route("/consultar", methods=["POST"])
     def consultar_pedido():
-        _, tipo_evento_service, pedido_service, _ = _obter_servicos()
+        if not permitir_requisicao("consultar", 10):
+            return "Demasiadas tentativas. Tente novamente mais tarde.", 429
+        validar_csrf()
+        _, tipo_evento_service, pedido_service = _obter_servicos()
         codigo = request.form["codigo_consulta"]
         try:
             pedido = pedido_service.consultar_por_codigo(codigo)
@@ -115,7 +179,6 @@ def criar_app() -> Flask:
             return render_template(
                 "inicio.html",
                 tipos_evento=tipo_evento_service.listar_tipos_evento(),
-                pedidos=pedido_service.listar_pedidos(),
                 pedido_consultado=pedido,
                 link_whatsapp=link_whatsapp,
             )
@@ -125,7 +188,10 @@ def criar_app() -> Flask:
 
     @app.route("/cancelar/<codigo>", methods=["POST"])
     def cancelar_pedido(codigo):
-        _, _, pedido_service, _ = _obter_servicos()
+        if not permitir_requisicao("cancelar", 5):
+            return "Demasiadas tentativas. Tente novamente mais tarde.", 429
+        validar_csrf()
+        _, _, pedido_service = _obter_servicos()
         try:
             pedido_service.cancelar_pelo_cliente(codigo)
             flash(f"O pedido {codigo} foi cancelado com sucesso.", "sucesso")
