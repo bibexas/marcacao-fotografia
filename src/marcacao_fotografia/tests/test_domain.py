@@ -5,6 +5,7 @@ from marcacao_fotografia.domain.pedido import Pedido, DadosPedidoInvalidos
 from marcacao_fotografia.domain.estado_pedido import EstadoPedido
 from marcacao_fotografia.domain.cliente import Cliente, DadosClienteInvalidos
 from marcacao_fotografia.domain.tipo_evento import TipoEvento
+from marcacao_fotografia.domain.administrador import Administrador, DadosAdministradorInvalidos
 
 class TestDomain(unittest.TestCase):
     def test_criar_cliente_valido(self):
@@ -19,7 +20,7 @@ class TestDomain(unittest.TestCase):
         self.assertEqual(cliente.telefone, "912345678")
 
     def test_rejeitar_cliente_sem_nome(self):
-        with self.assertRaises(DadosClienteInvalidos):
+        with self.assertRaisesRegex(DadosClienteInvalidos, "O nome não pode estar vazio."):
             Cliente(
                 id_cliente=None,
                 nome="",
@@ -113,6 +114,44 @@ class TestDomain(unittest.TestCase):
         )
         self.assertFalse(pedido_confirmado.cliente_cancelar())
         self.assertTrue(pedido_confirmado.equipa_cancelar())
+
+    def test_username_vazio_rejeitado(self):
+        with self.assertRaisesRegex(DadosAdministradorInvalidos, "não pode estar vazio"):
+            Administrador.criar(username="", password="password123")
+
+    def test_username_com_mais_de_50_caracteres_rejeitado(self):
+        with self.assertRaisesRegex(DadosAdministradorInvalidos, "mais de 50 caracteres"):
+            Administrador.criar(username="a" * 51, password="password123")
+
+    def test_username_com_espacos_rejeitado(self):
+        with self.assertRaisesRegex(DadosAdministradorInvalidos, "não pode conter espaços"):
+            Administrador.criar(username="user name", password="password123")
+
+    def test_password_curta_rejeitada(self):
+        with self.assertRaisesRegex(DadosAdministradorInvalidos, "pelo menos 8 caracteres"):
+            Administrador.criar(username="user123", password="pass")
+
+    def test_hash_guardado_difere_da_password(self):
+        admin = Administrador.criar(username="user123", password="password123")
+        self.assertNotEqual(admin.password_hash, "password123")
+
+    def test_verificar_password_certa_e_errada(self):
+        admin = Administrador.criar(username="user123", password="password123")
+        self.assertTrue(admin.verificar_password("password123"))
+        self.assertFalse(admin.verificar_password("wrongpassword"))
+
+    def test_hash_vazio_rejeitado(self):
+        with self.assertRaisesRegex(DadosAdministradorInvalidos, "hash da password"):
+            Administrador(id_admin=None, username="user123", password_hash="")
+
+    def test_password_vazia_nao_verifica(self):
+        admin = Administrador.criar(username="user123", password="password123")
+        self.assertFalse(admin.verificar_password(""))
+
+    def test_repr_sem_hash_da_password(self):
+        admin = Administrador.criar(username="user123", password="password123")
+        self.assertNotIn(admin.password_hash, repr(admin))
+        self.assertIn("Administrador(id_admin=None, username='user123')", repr(admin))
 
 if __name__ == "__main__":
     unittest.main()
