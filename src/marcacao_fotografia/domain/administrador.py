@@ -13,7 +13,7 @@ class Administrador:
     password_hash: str = field(repr=False)
 
     def __post_init__(self):
-        username_limpo = self.username.strip()
+        username_limpo = self.username.strip().lower()
         password_hash_limpo = self.password_hash.strip()
 
         # Validar os dados do administrador

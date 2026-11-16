@@ -5,9 +5,11 @@ from unittest.mock import MagicMock
 from marcacao_fotografia.repositories.cliente_repository import ClienteRepository
 from marcacao_fotografia.repositories.pedido_repository import PedidoRepository
 from marcacao_fotografia.repositories.tipo_evento_repository import TipoEventoRepository
+from marcacao_fotografia.repositories.administrador_repository import AdministradorRepository
 from marcacao_fotografia.domain.cliente import Cliente
 from marcacao_fotografia.domain.pedido import Pedido
 from marcacao_fotografia.domain.estado_pedido import EstadoPedido
+from marcacao_fotografia.domain.administrador import Administrador
 
 class TestRepositories(unittest.TestCase):
     def setUp(self):
@@ -26,6 +28,19 @@ class TestRepositories(unittest.TestCase):
         self.assertEqual(cliente_out.nome, "João")
         self.assertEqual(cliente_out.email, "joaosilva@gmail.com")
         self.assertEqual(cliente_out.telefone, "912345678")
+
+    def test_guardar_cliente_faz_rollback_se_falhar(self):
+        conexao = MagicMock()
+        cursor = conexao.cursor.return_value.__enter__.return_value
+        cursor.execute.side_effect = Exception("Erro SQL")
+        repositorio = ClienteRepository(conexao)
+        cliente = Cliente(None, "Ana", "ana@exemplo.pt", "912345678")
+
+        with self.assertRaisesRegex(Exception, "Erro SQL"):
+            repositorio.guardar_cliente(cliente)
+
+        conexao.rollback.assert_called_once()
+        conexao.commit.assert_not_called()
 
     def test_procurar_email(self):
         self.cursor_mock.fetchone.return_value = {"id_cliente": 1, "nome": "João", "email": "joaosilva@gmail.com", "telefone": "912345678"}
@@ -123,6 +138,89 @@ class TestRepositories(unittest.TestCase):
         self.assertIsNotNone(tipo)
         self.assertEqual(tipo.id_tipo, 1)
         self.assertEqual(tipo.tipo, "Casamento")
+
+    def test_procurar_username(self):
+        self.cursor_mock.fetchone.return_value = {"id_admin": 1, "username": "admin", "password_hash": "hashed_password"}
+        admin = AdministradorRepository(self.conexao_mock).procurar_por_username("admin")
+
+        self.assertIsNotNone(admin)
+        self.assertEqual(admin.id_admin, 1)
+        self.assertEqual(admin.username, "admin")
+        self.assertEqual(admin.password_hash, "hashed_password")
+
+    def test_procurar_por_username_inexistente(self):
+        self.cursor_mock.fetchone.return_value = None
+        admin = AdministradorRepository(self.conexao_mock).procurar_por_username("naoexiste")
+
+        self.assertIsNone(admin)
+
+    def test_guardar_administrador(self):
+        self.cursor_mock.fetchone.return_value = {"id_admin": 1}
+        admin_in = Administrador(id_admin=None, username="admin", password_hash="hashed_password")
+        admin_out = AdministradorRepository(self.conexao_mock).guardar_administrador(admin_in)
+
+        self.assertEqual(admin_out.id_admin, 1)
+        self.assertEqual(admin_out.username, "admin")
+        self.assertEqual(admin_out.password_hash, "hashed_password")
+        self.conexao_mock.commit.assert_called_once()
+        self.conexao_mock.rollback.assert_not_called()
+
+    def test_guardar_administrador_faz_rollback_se_falhar(self):
+        admin_in = Administrador(id_admin=None, username="admin", password_hash="hashed_password")
+        self.cursor_mock.execute.side_effect = Exception("Erro SQL")
+
+        with self.assertRaisesRegex(Exception, "Erro SQL"):
+            AdministradorRepository(self.conexao_mock).guardar_administrador(admin_in)
+
+        self.conexao_mock.rollback.assert_called_once()
+        self.conexao_mock.commit.assert_not_called()
+        
+    def test_atualizar_password(self):
+        self.cursor_mock.rowcount = 1
+        atualizado = AdministradorRepository(self.conexao_mock).atualizar_password(1, "new_hashed_password")
+
+        self.assertTrue(atualizado)
+        self.cursor_mock.execute.assert_called_once()
+        self.conexao_mock.commit.assert_called_once()
+        self.conexao_mock.rollback.assert_not_called()
+
+    def test_atualizar_password_sem_id(self):
+        self.cursor_mock.rowcount = 0
+        atualizado = AdministradorRepository(self.conexao_mock).atualizar_password(999, "new_hashed_password")
+
+        self.assertFalse(atualizado)
+        self.cursor_mock.execute.assert_called_once()
+        self.conexao_mock.commit.assert_called_once()
+        self.conexao_mock.rollback.assert_not_called()
+
+    def test_atualizar_password_faz_rollback_se_falhar(self):
+        self.cursor_mock.execute.side_effect = Exception("Erro SQL")
+
+        with self.assertRaisesRegex(Exception, "Erro SQL"):
+            AdministradorRepository(self.conexao_mock).atualizar_password(1, "new_hashed_password")
+
+        self.conexao_mock.rollback.assert_called_once()
+        self.conexao_mock.commit.assert_not_called()
+
+    def test_username_existe(self):
+        self.cursor_mock.fetchone.return_value = {"existe": True}
+        existe = AdministradorRepository(self.conexao_mock).username_existe("admin")
+
+        self.assertTrue(existe)
+        self.cursor_mock.execute.assert_called_once()
+
+    def test_username_nao_existe(self):
+        self.cursor_mock.fetchone.return_value = {"existe": False}
+        existe = AdministradorRepository(self.conexao_mock).username_existe("outro")
+
+        self.assertFalse(existe)
+
+    def test_procurar_por_username_normaliza_maiusculas(self):
+        self.cursor_mock.fetchone.return_value = None
+        AdministradorRepository(self.conexao_mock).procurar_por_username("  ADMIN ")
+
+        parametros = self.cursor_mock.execute.call_args[0][1]
+        self.assertEqual(parametros, ("admin",))
 
 if __name__ == "__main__":
     unittest.main()

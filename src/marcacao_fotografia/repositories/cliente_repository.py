@@ -12,12 +12,15 @@ class ClienteRepository:
         VALUES (%s, %s, %s)
         RETURNING id_cliente
         """
-        with self.conexao.cursor() as cursor:
-            cursor.execute(query, (cliente.nome, cliente.email, cliente.telefone))
-            resultado = cursor.fetchone()
-            novo_id = resultado["id_cliente"]
-        self.conexao.commit()
-
+        try:
+            with self.conexao.cursor() as cursor:
+                cursor.execute(query, (cliente.nome, cliente.email, cliente.telefone))
+                resultado = cursor.fetchone()
+                novo_id = resultado["id_cliente"]
+            self.conexao.commit()
+        except Exception:
+            self.conexao.rollback()
+            raise
         return Cliente(id_cliente=novo_id, nome=cliente.nome, email=cliente.email, telefone=cliente.telefone)
 
     # Procurar um cliente pelo email
