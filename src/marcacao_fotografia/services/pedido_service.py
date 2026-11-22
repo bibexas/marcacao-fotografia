@@ -1,6 +1,8 @@
 from dataclasses import replace
 from datetime import date, time
 import uuid
+import secrets
+ALFABETO_CODIGO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 from urllib.parse import quote
 
 from marcacao_fotografia.domain.pedido import Pedido, EstadoPedido
@@ -43,7 +45,7 @@ class PedidoService:
     # Gerar um código único para o pedido
     def _gerar_codigo_unico(self) -> str:
         while True:
-            codigo = uuid.uuid4().hex[:8].upper()
+            codigo = "".join(secrets.choice(ALFABETO_CODIGO) for _ in range(8))
             if not self.pedido_repo.procurar_codigo(codigo):
                 return codigo
 

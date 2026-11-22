@@ -23,10 +23,7 @@ def _load_dotenv():
 			if name:
 				os.environ.setdefault(name, value)
 
-
 _load_dotenv()
-
-DATABASE_URL = os.getenv("DATABASE_URL")
 
 def _get_bool(name, default=False):
 	value = os.getenv(name)
