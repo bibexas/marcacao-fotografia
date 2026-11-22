@@ -49,7 +49,7 @@ class TestRepositories(unittest.TestCase):
         self.assertEqual(cliente.nome, "João")
         self.assertEqual(cliente.email, "joaosilva@gmail.com")
 
-    def test_procurar_id(self):
+    def test_procurar_cliente_id(self):
         self.cursor_mock.fetchone.return_value = {"id_cliente": 1, "nome": "João", "email": "joaosilva@gmail.com", "telefone": "912345678"}
         cliente = self.cliente_repo.procurar_id(1)
         self.assertIsNotNone(cliente)
@@ -121,7 +121,18 @@ class TestRepositories(unittest.TestCase):
     def test_atualizar_estado(self):
         self.cursor_mock.rowcount = 1
         self.pedido_repo.atualizar_estado(1, EstadoPedido.CONFIRMADA)
+
         self.cursor_mock.execute.assert_called_once()
+        self.conexao_mock.commit.assert_called_once()
+
+    def test_atualizar_estado_faz_rollback_se_falhar(self):
+        self.cursor_mock.execute.side_effect = Exception("Erro SQL")
+
+        with self.assertRaisesRegex(Exception, "Erro SQL"):
+            self.pedido_repo.atualizar_estado(1, EstadoPedido.CONFIRMADA)
+
+        self.conexao_mock.rollback.assert_called_once()
+        self.conexao_mock.commit.assert_not_called()
 
     def test_listar_tipos_evento(self):
         self.cursor_mock.fetchall.return_value = [
@@ -224,6 +235,21 @@ class TestRepositories(unittest.TestCase):
 
         parametros = self.cursor_mock.execute.call_args[0][1]
         self.assertEqual(parametros, ("admin",))
+
+    def test_procurar_admin_id(self):
+        self.cursor_mock.fetchone.return_value = {"id_admin": 1, "username": "admin", "password_hash": "hashed_password"}
+        admin = AdministradorRepository(self.conexao_mock).procurar_id(1)
+
+        self.assertIsNotNone(admin)
+        self.assertEqual(admin.id_admin, 1)
+        self.assertEqual(admin.username, "admin")
+        self.assertEqual(admin.password_hash, "hashed_password")
+
+    def test_procurar_admin_id_inexistente(self):
+        self.cursor_mock.fetchone.return_value = None
+        admin = AdministradorRepository(self.conexao_mock).procurar_id(999)
+
+        self.assertIsNone(admin)
 
 if __name__ == "__main__":
     unittest.main()

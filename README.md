@@ -43,6 +43,15 @@ Para a minha equipa este sistema traz a vantagem de centralizar a gestão dos pe
 - **Base de Dados:** PostgreSQL
 - **Controlo de Versões:** Git & GitHub
 
+## Como executar
+
+Na raiz do projeto, instalar as dependências e iniciar a aplicação com:
+
+```bash
+pip install -r requirements.txt
+python -m marcacao_fotografia.app
+```
+
 ## Estado Atual
 **Feito:**
 - Base de Dados

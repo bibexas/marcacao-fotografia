@@ -59,3 +59,17 @@ class AdministradorRepository:
         with self.conexao.cursor() as cursor:
             cursor.execute(query, (username.strip().lower(),))
             return cursor.fetchone() ["existe"]
+
+    def procurar_id(self, id_admin: int) -> Administrador | None:
+        query = "SELECT * FROM administrador WHERE id_admin = %s"
+        with self.conexao.cursor() as cursor:
+            cursor.execute(query, (id_admin,))
+            linha = cursor.fetchone()
+        if linha is None:
+            return None
+
+        return Administrador(
+            id_admin=linha["id_admin"],
+            username=linha["username"],
+            password_hash=linha["password_hash"],
+        )

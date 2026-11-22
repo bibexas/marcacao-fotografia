@@ -6,6 +6,7 @@ from marcacao_fotografia.domain.estado_pedido import EstadoPedido
 from marcacao_fotografia.domain.pedido import Pedido
 from marcacao_fotografia.repositories.pedido_repository import PedidoRepository
 from marcacao_fotografia.services.pedido_service import PedidoService
+from marcacao_fotografia.services.auth_service import AuthService, CredenciaisInvalidasError, AdministradorNaoEncontradoError
 
 
 class TestPedidoService(unittest.TestCase):
