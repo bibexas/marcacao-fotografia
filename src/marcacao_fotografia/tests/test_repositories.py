@@ -251,5 +251,12 @@ class TestRepositories(unittest.TestCase):
 
         self.assertIsNone(admin)
 
+    def test_existe_sobreposicao_passa_fim_antes_do_inicio(self):
+        self.cursor_mock.fetchone.return_value = None
+        self.pedido_repo.existe_sobreposicao(date(2026, 11, 25), time(11, 0), time(13, 0))
+
+        parametros = self.cursor_mock.execute.call_args[0][1]
+        self.assertEqual(parametros, (date(2026, 11, 25), "Confirmada", time(13, 0), time(11, 0)))
+
 if __name__ == "__main__":
     unittest.main()

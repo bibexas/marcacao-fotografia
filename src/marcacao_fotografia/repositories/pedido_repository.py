@@ -113,8 +113,8 @@ class PedidoRepository:
                 (
                     data_sessao,
                     EstadoPedido.CONFIRMADA.value,                
-                    hora_inicio,
                     hora_fim,
+                    hora_inicio,
                 ),
             )
             linhas = cursor.fetchall()
@@ -139,8 +139,8 @@ class PedidoRepository:
         parametros = [
             data_sessao,
             EstadoPedido.CONFIRMADA.value,
-            hora_inicio,
             hora_fim,
+            hora_inicio,
         ]
         if ignorar_id is not None:
             query += " AND id_pedido <> %s"

@@ -1,5 +1,6 @@
 import secrets
 from datetime import date, time, timedelta
+from marcacao_fotografia.web.auth import auth_bp
 
 from flask import (
     Flask,
@@ -31,6 +32,7 @@ def criar_app() -> Flask:
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=8)
     app.extensions["database_initialized"] = False
     app.teardown_appcontext(fechar_conexao)
+    app.register_blueprint(auth_bp)
 
     @app.context_processor
     def disponibilizar_csrf_token():
