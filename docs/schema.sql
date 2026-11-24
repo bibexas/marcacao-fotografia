@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS administrador (
 
 CREATE TABLE IF NOT EXISTS pedido (
     id_pedido SERIAL PRIMARY KEY,
-    codigo_consulta VARCHAR(8) UNIQUE NOT NULL,
+    codigo_consulta VARCHAR(12) UNIQUE NOT NULL,
     data_sessao DATE NOT NULL,
     hora_inicio TIME NOT NULL,
     hora_fim TIME NOT NULL,
@@ -30,6 +30,17 @@ CREATE TABLE IF NOT EXISTS pedido (
     id_tipo INT NOT NULL REFERENCES tipo_evento(id_tipo),
     CONSTRAINT chk_hora CHECK (hora_inicio < hora_fim),
     CONSTRAINT chk_pedido_estado CHECK (estado IN ('Pendente', 'Confirmada', 'Realizada', 'Em Tratamento', 'Entregue', 'Cancelada'))
+);
+
+ALTER TABLE pedido
+    ALTER COLUMN codigo_consulta TYPE VARCHAR(12);
+
+CREATE TABLE IF NOT EXISTS limite_requisicao (
+    chave VARCHAR(255) NOT NULL,
+    rota VARCHAR(50) NOT NULL,
+    inicio_janela TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    contagem INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (chave, rota)
 );
 
 CREATE INDEX IF NOT EXISTS idx_pedido_data_estado ON pedido (data_sessao, estado);

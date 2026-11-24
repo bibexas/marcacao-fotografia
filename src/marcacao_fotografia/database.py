@@ -1,24 +1,24 @@
 from pathlib import Path
 
 try:
-    import psycopg2
-    from psycopg2.extras import RealDictCursor
+    import psycopg
+    from psycopg.rows import dict_row
 except ImportError:  # pragma: no cover - depends on the runtime environment
-    psycopg2 = None
-    RealDictCursor = None
+    psycopg = None
+    dict_row = None
 
 from marcacao_fotografia.config import DATABASE_URL
 
 
 def obter_conexao():
-    if psycopg2 is None or RealDictCursor is None:
+    if psycopg is None or dict_row is None:
         raise RuntimeError(
-            "A dependência psycopg2 não está disponível no ambiente atual. "
+            "A dependência psycopg não está disponível no ambiente atual. "
             "Instale os requisitos do projeto antes de usar o banco de dados."
         )
     if not DATABASE_URL:
         raise ValueError("A variável de ambiente DATABASE_URL não está definida.")
-    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    return psycopg.connect(DATABASE_URL, row_factory=dict_row)
 
 
 def iniciar_bd():

@@ -1,8 +1,6 @@
 from dataclasses import replace
 from datetime import date, time
-import uuid
 import secrets
-ALFABETO_CODIGO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 from urllib.parse import quote
 
 from marcacao_fotografia.domain.pedido import Pedido, EstadoPedido
@@ -24,6 +22,8 @@ class TransicaoEstadoInvalidaError(ValueError):
 
 
 class PedidoService:
+    ALFABETO_CODIGO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    TAMANHO_CODIGO = 12
     ORDEM_ESTADOS = [
         EstadoPedido.PENDENTE,
         EstadoPedido.CONFIRMADA,
@@ -45,7 +45,10 @@ class PedidoService:
     # Gerar um código único para o pedido
     def _gerar_codigo_unico(self) -> str:
         while True:
-            codigo = "".join(secrets.choice(ALFABETO_CODIGO) for _ in range(8))
+            codigo = "".join(
+                secrets.choice(self.ALFABETO_CODIGO)
+                for _ in range(self.TAMANHO_CODIGO)
+            )
             if not self.pedido_repo.procurar_codigo(codigo):
                 return codigo
 
@@ -60,6 +63,9 @@ class PedidoService:
         localizacao: str,
         observacoes: str | None = None,
     ) -> Pedido:
+        if data_sessao < date.today():
+            raise ValueError("A data da sessão não pode ser anterior à data atual.")
+
         if not self.cliente_repo.procurar_id(id_cliente):
             raise ValueError(f"Cliente com ID {id_cliente} não existe.")
 

@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, time, timedelta
 import unittest
 from unittest.mock import Mock
 
@@ -30,7 +30,7 @@ class TestPedidoService(unittest.TestCase):
         pedido = self.service.criar_pedido(
             1,
             1,
-            date(2026, 1, 1),
+            date.today().replace(year=date.today().year + 1),
             time(10),
             time(11),
             "Local",
@@ -38,7 +38,19 @@ class TestPedidoService(unittest.TestCase):
 
         self.assertEqual(pedido.estado, EstadoPedido.PENDENTE)
         self.assertEqual(pedido.duracao, 60)
+        self.assertEqual(len(pedido.codigo_consulta), 12)
         self.pedido_repo.guardar_pedido.assert_called_once()
+
+    def test_criar_pedido_rejeita_data_passada(self):
+        with self.assertRaisesRegex(ValueError, "não pode ser anterior"):
+            self.service.criar_pedido(
+                1,
+                1,
+                date.today() - timedelta(days=1),
+                time(10),
+                time(11),
+                "Local",
+            )
 
     def test_cancelar_pedido_preserva_imutabilidade_do_pedido(self):
         pedido = Pedido(

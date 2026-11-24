@@ -1,10 +1,6 @@
 import hmac
-import threading
-import time as time_module
 from flask import session, request, abort
-
-_limites: dict[tuple[str, str], list[float]] = {}
-_limites_lock = threading.Lock()
+from marcacao_fotografia.database import obter_conexao
 
 
 def validar_csrf() -> None:
@@ -18,30 +14,35 @@ def validar_csrf() -> None:
             abort(400, description="Token CSRF inválido ou ausente.")
 
 def permitir_requisicao(nome_rota: str, limite: int) -> bool:
-    agora = time_module.monotonic()
-    chave = (request.remote_addr or "desconhecido", nome_rota)
-    with _limites_lock:
-        for chave_antiga, instantes in list(_limites.items()):
-            recentes = [
-                instante
-                for instante in instantes
-                if agora - instante < 60
-            ]
-            if recentes:
-                _limites[chave_antiga] = recentes
-            else:
-                del _limites[chave_antiga]
-
-        pedidos_recentes = [
-            instante
-            for instante in _limites.get(chave, [])
-            if agora - instante < 60
-        ]
-        if len(pedidos_recentes) >= limite:
-            _limites[chave] = pedidos_recentes
-            return False
-
-        pedidos_recentes.append(agora)
-        _limites[chave] = pedidos_recentes
-        return True
-        
+    conexao = obter_conexao()
+    try:
+        with conexao.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO limite_requisicao (chave, rota, inicio_janela, contagem)
+                VALUES (%s, %s, CURRENT_TIMESTAMP, 1)
+                ON CONFLICT (chave, rota) DO UPDATE
+                SET inicio_janela = CASE
+                        WHEN CURRENT_TIMESTAMP - limite_requisicao.inicio_janela
+                            >= INTERVAL '1 minute'
+                        THEN CURRENT_TIMESTAMP
+                        ELSE limite_requisicao.inicio_janela
+                    END,
+                    contagem = CASE
+                        WHEN CURRENT_TIMESTAMP - limite_requisicao.inicio_janela
+                            >= INTERVAL '1 minute'
+                        THEN 1
+                        ELSE limite_requisicao.contagem + 1
+                    END
+                RETURNING contagem
+                """,
+                (request.remote_addr or "desconhecido", nome_rota),
+            )
+            contagem = cursor.fetchone()["contagem"]
+        conexao.commit()
+        return contagem <= limite
+    except Exception:
+        conexao.rollback()
+        raise
+    finally:
+        conexao.close()

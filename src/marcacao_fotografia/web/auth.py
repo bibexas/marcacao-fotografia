@@ -9,6 +9,7 @@ auth_bp = Blueprint("auth", __name__)
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
+        servicos = obter_servicos()
         if not permitir_requisicao("login", 5):
             return "Demasiadas tentativas. Tente novamente mais tarde.", 429
 
@@ -17,7 +18,7 @@ def login():
         password = request.form.get("password", "")
 
         try:
-            administrador = obter_servicos().auth.login(username, password)
+            administrador = servicos.auth.login(username, password)
         except CredenciaisInvalidasError as erro:
             flash(str(erro), "erro")
         else:

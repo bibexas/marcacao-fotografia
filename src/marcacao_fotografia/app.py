@@ -52,10 +52,10 @@ def criar_app() -> Flask:
 
     @app.route("/submeter", methods=["POST"])
     def submeter_pedido():
+        servicos = obter_servicos()
         if not permitir_requisicao("submeter", 5):
             return "Demasiadas tentativas. Tente novamente mais tarde.", 429
         validar_csrf()
-        servicos = obter_servicos()
         try:
             nome = request.form["nome"]
             email = request.form["email"]
@@ -98,10 +98,10 @@ def criar_app() -> Flask:
 
     @app.route("/consultar", methods=["POST"])
     def consultar_pedido():
+        servicos = obter_servicos()
         if not permitir_requisicao("consultar", 10):
             return "Demasiadas tentativas. Tente novamente mais tarde.", 429
         validar_csrf()
-        servicos = obter_servicos()
         codigo = request.form["codigo_consulta"]
         try:
             pedido = servicos.pedido.consultar_por_codigo(codigo)
@@ -118,10 +118,10 @@ def criar_app() -> Flask:
 
     @app.route("/cancelar/<codigo>", methods=["POST"])
     def cancelar_pedido(codigo):
+        servicos = obter_servicos()
         if not permitir_requisicao("cancelar", 5):
             return "Demasiadas tentativas. Tente novamente mais tarde.", 429
         validar_csrf()
-        servicos = obter_servicos()
         try:
             servicos.pedido.cancelar_pelo_cliente(codigo)
             flash(f"O pedido {codigo} foi cancelado com sucesso.", "sucesso")

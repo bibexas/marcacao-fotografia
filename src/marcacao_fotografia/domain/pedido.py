@@ -27,8 +27,8 @@ class Pedido:
         if self.hora_fim <= self.hora_inicio:
             raise DadosPedidoInvalidos("A hora de fim deve ser posterior à hora de início.")
 
-        if len(self.codigo_consulta) != 8:
-            raise DadosPedidoInvalidos("O código de consulta deve ter 8 caracteres.")
+        if not 8 <= len(self.codigo_consulta) <= 12:
+            raise DadosPedidoInvalidos("O código de consulta deve ter entre 8 e 12 caracteres.")
 
         localizacao_limpa = self.localizacao.strip()
         if not localizacao_limpa:

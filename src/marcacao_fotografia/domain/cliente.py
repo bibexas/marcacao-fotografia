@@ -12,7 +12,7 @@ class Cliente:
 
     def __post_init__(self):
         nome_limpo = self.nome.strip()
-        email_limpo = self.email.strip()
+        email_limpo = self.email.strip().casefold()
         telefone_limpo = self.telefone.strip()
 
         # Validar os dados do cliente

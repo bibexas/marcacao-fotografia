@@ -27,7 +27,7 @@ class ClienteRepository:
     def procurar_email(self, email: str) -> Cliente | None:
         query = "SELECT * FROM cliente WHERE email = %s"
         with self.conexao.cursor() as cursor:
-            cursor.execute(query, (email.strip(),))
+            cursor.execute(query, (email.strip().casefold(),))
             linha = cursor.fetchone()
         if linha is None:
             return None

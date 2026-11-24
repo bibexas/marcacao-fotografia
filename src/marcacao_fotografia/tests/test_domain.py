@@ -19,6 +19,15 @@ class TestDomain(unittest.TestCase):
         self.assertEqual(cliente.email, "abeatrizvg@gmail.com")
         self.assertEqual(cliente.telefone, "912345678")
 
+    def test_normalizar_email(self):
+        cliente = Cliente(
+            id_cliente=None,
+            nome="Beatriz Vilaça",
+            email="  BEATRIZ@EXEMPLO.PT ",
+            telefone="912345678",
+        )
+        self.assertEqual(cliente.email, "beatriz@exemplo.pt")
+
     def test_rejeitar_cliente_sem_nome(self):
         with self.assertRaisesRegex(DadosClienteInvalidos, "O nome não pode estar vazio."):
             Cliente(
@@ -70,7 +79,7 @@ class TestDomain(unittest.TestCase):
             )
 
     def test_rejeitar_codigo_consulta_invalido(self):
-        with self.assertRaisesRegex(DadosPedidoInvalidos, "O código de consulta deve ter 8 caracteres."):
+        with self.assertRaisesRegex(DadosPedidoInvalidos, "entre 8 e 12 caracteres"):
             Pedido(
                 id_pedido=None,
                 codigo_consulta="ABC1234",
