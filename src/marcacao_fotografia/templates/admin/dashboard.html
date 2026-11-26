@@ -17,6 +17,15 @@
 
 	<main>
 		<h2>Pedidos</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+			{% if messages %}
+				<section aria-label="Mensagens">
+					{% for category, message in messages %}
+						<div class="alert alert-{{ category }}">{{ message }}</div>
+					{% endfor %}
+				</section>
+			{% endif %}
+		{% endwith %}
 		{% if pedidos %}
 			<table>
 				<thead>
@@ -30,6 +39,7 @@
 						<th>Localização</th>
 						<th>Estado</th>
                         <th>Código</th>
+						<th>Ações</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -40,10 +50,27 @@
 							<td>{{ p.cliente_telefone }}</td>
 							<td>{{ p.tipo_evento }}</td>
 							<td>{{ p.data_sessao.strftime('%d/%m/%Y') }}</td>
-							<td>{{ p.hora_inicio.strftime('%H:%M') }}</td>
+                            <td>{{ p.hora_inicio.strftime('%H:%M') }} – {{ p.hora_fim.strftime('%H:%M') }}</td>
 							<td>{{ p.localizacao }}</td>
 							<td>{{ p.estado }}</td>
                             <td>{{ p.codigo_consulta }}</td>
+							<td>
+								{% set seguinte = proximos.get(p.estado) %}
+								{% if seguinte %}
+									<form method="post" action="{{ url_for('admin.alterar_estado_pedido', id_pedido=p.id_pedido) }}">
+										<input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+										<input type="hidden" name="estado" value="{{ seguinte }}">
+										<button type="submit">{{ rotulos[seguinte] }}</button>
+									</form>
+								{% endif %}
+								{% if p.estado in ("Pendente", "Confirmada") %}
+									<form method="post" action="{{ url_for('admin.alterar_estado_pedido', id_pedido=p.id_pedido) }}">
+										<input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+										<input type="hidden" name="estado" value="Cancelada">
+										<button type="submit">Cancelar</button>
+									</form>
+								{% endif %}
+							</td>
 						</tr>
 					{% endfor %}
 				</tbody>
