@@ -1,6 +1,7 @@
 import secrets
 from datetime import date, time, timedelta
 from marcacao_fotografia.web.auth import auth_bp
+from marcacao_fotografia.web.admin import admin_bp
 
 from flask import (
     Flask,
@@ -33,6 +34,7 @@ def criar_app() -> Flask:
     app.extensions["database_initialized"] = False
     app.teardown_appcontext(fechar_conexao)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(admin_bp)
 
     @app.context_processor
     def disponibilizar_csrf_token():

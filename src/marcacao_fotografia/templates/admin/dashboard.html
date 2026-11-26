@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Painel de administração</title>
+</head>
+<body>
+	<header>
+		<h1>Painel de administração</h1>
+		<p>Administrador: {{ g.administrador.username }}</p>
+		<form method="post" action="{{ url_for('auth.logout') }}">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+			<button type="submit">Terminar sessão</button>
+		</form>
+	</header>
+
+	<main>
+		<h2>Pedidos</h2>
+		{% if pedidos %}
+			<table>
+				<thead>
+					<tr>
+						<th>Cliente</th>
+						<th>Email</th>
+						<th>Telefone</th>
+						<th>Tipo de evento</th>
+						<th>Data</th>
+						<th>Hora</th>
+						<th>Localização</th>
+						<th>Estado</th>
+                        <th>Código</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for p in pedidos %}
+						<tr>
+							<td>{{ p.cliente_nome }}</td>
+							<td>{{ p.cliente_email }}</td>
+							<td>{{ p.cliente_telefone }}</td>
+							<td>{{ p.tipo_evento }}</td>
+							<td>{{ p.data_sessao.strftime('%d/%m/%Y') }}</td>
+							<td>{{ p.hora_inicio.strftime('%H:%M') }}</td>
+							<td>{{ p.localizacao }}</td>
+							<td>{{ p.estado }}</td>
+                            <td>{{ p.codigo_consulta }}</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		{% else %}
+			<p>Não existem pedidos.</p>
+		{% endif %}
+	</main>
+</body>
+</html>

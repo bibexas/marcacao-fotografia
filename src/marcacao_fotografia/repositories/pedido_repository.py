@@ -98,6 +98,31 @@ class PedidoRepository:
 
         return [self.linha_para_pedido(linha) for linha in linhas]
 
+    # Listar todos os pedidos com os dados do cliente e do tipo de evento
+    def listar_com_detalhes(self) -> list[dict]:
+        query = """
+        SELECT
+            p.id_pedido,
+            p.codigo_consulta,
+            p.data_sessao,
+            p.hora_inicio,
+            p.hora_fim,
+            p.localizacao,
+            p.estado,
+            p.observacoes,
+            c.nome AS cliente_nome,
+            c.email AS cliente_email,
+            c.telefone AS cliente_telefone,
+            t.tipo AS tipo_evento
+        FROM pedido p
+        JOIN cliente c ON c.id_cliente = p.id_cliente
+        JOIN tipo_evento t ON t.id_tipo = p.id_tipo
+        ORDER BY p.data_sessao, p.hora_inicio
+        """
+        with self.conexao.cursor() as cursor:
+            cursor.execute(query)
+            return cursor.fetchall()
+
     # Consultar sobreposições de pedidos
     def consultar_sobreposicoes(self, data_sessao, hora_inicio, hora_fim) -> list[Pedido]:
         query = """

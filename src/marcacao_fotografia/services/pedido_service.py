@@ -103,6 +103,10 @@ class PedidoService:
     def listar_pedidos(self) -> list[Pedido]:
         return self.pedido_repo.listar_todos()
 
+    # Listar os pedidos com os dados do cliente, para o painel da equipa
+    def listar_pedidos_com_detalhes(self) -> list[dict]:
+        return self.pedido_repo.listar_com_detalhes()
+
     # Listar os horários indisponíveis para uma determinada data
     def listar_horarios_indisponiveis(self, data_sessao: date) -> list[tuple[time, time]]:
         pedidos_confirmados = self.pedido_repo.listar_confirmados_por_data(data_sessao)

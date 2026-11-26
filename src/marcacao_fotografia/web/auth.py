@@ -25,7 +25,7 @@ def login():
             session.clear()
             session["id_admin"] = administrador.id_admin
             session.permanent = True
-            return redirect(url_for("inicio"))
+            return redirect(url_for("admin.painel"))
 
     return render_template("login.html")
 
